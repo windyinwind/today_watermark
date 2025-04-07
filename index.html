@@ -377,7 +377,7 @@
                                     font: 'bold 24px "Noto Sans SC", "Microsoft YaHei", sans-serif',
                                     color: 'linear-gradient(to bottom, #5798ff, black)',
                                     x: 20,
-                                    y: 'bottom-100',
+                                    y: img.height - 100,
                                     scaleX: 0.8
                                 },
                                 {
@@ -385,7 +385,7 @@
                                     font: 'bold 15px "Noto Sans SC", "Microsoft YaHei", sans-serif',
                                     color: 'white',
                                     x: 10,
-                                    y: 'bottom-50',
+                                    y: img.height - 50,
                                     scaleX: 0.9
                                 },
                                 {
@@ -393,24 +393,17 @@
                                     font: '15px "Noto Sans SC", "Microsoft YaHei", sans-serif',
                                     color: 'white',
                                     x: 30,
-                                    y: 'bottom-20'
+                                    y: img.height - 20
                                 },
                                 {
                                     text: randomCode,
                                     font: 'bold 6.5px "Noto Sans SC", "Microsoft YaHei", sans-serif',
                                     color: 'white',
-                                    x: 'right-40',
-                                    y: 'bottom-20',
+                                    x: img.width - 40,
+                                    y: img.height - 20,
                                     scaleX: 0.8
                                 }
-                            ],
-                            background: 'rgba(0, 0, 0, 0.5)',
-                            backgroundPosition: {
-                                x: 10,
-                                y: 'bottom-120',
-                                width: '100%-20',
-                                height: 110
-                            }
+                            ]
                         };
                         
                         // Apply watermark using WatermarkPlus
