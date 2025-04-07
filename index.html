@@ -1,519 +1,596 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=no,minimal-ui"
-    />
-    <title>DIY水印相机</title>
-    
-    <!-- Import jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <!-- Import Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Import Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Import Noto Sans SC for better Chinese font support -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- Import WatermarkPlus -->
-    <script src="assets/js/watermark-plus/watermark-plus.min.js"></script>
-    
-    <style>
-        body {
-            font-family: 'Noto Sans SC', 'Microsoft YaHei', Arial, sans-serif;
-        }
-        
-        /* Custom styles for watermark */
-        .gradient-text {
-            background: linear-gradient(to bottom, #5798ff, black);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            font-size: 1.5em;
-            font-weight: bold;
-            padding-left: 12.8px;
-            transform: scaleX(0.8);
-        }
-        
-        .watermark-preview {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            color: white;
-            font-size: 15px;
-            font-weight: 500;
-            letter-spacing: 0px;
-            padding: 5px;
-            border-radius: 5px;
-            margin-bottom: -16.3px;
-        }
-        
-        #watermarkTextb {
-            transform: scaleX(0.9);
-            padding-top: 8px;
-            margin-left: -10px;
-            padding-bottom: 1px;
-            letter-spacing: 0.1px;
-            font-weight: bold;
-        }
-        
-        #watermarkTextc {
-            padding-bottom: 19px;
-            padding-left: 10px;
-            letter-spacing: 0px;
-        }
-        
-        #fw {
-            transform: scaleX(0.8);
-            letter-spacing: 0px;
-            margin-left: 303px;
-            font-size: 6.5px;
-            margin-bottom: 0px;
-            font-weight: bold;
-            margin-top: -1.8px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=no,minimal-ui"
+  />
+  <title>DIY水印相机</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Changed CDN source to unpkg -->
+  <script src="https://unpkg.com/watermark-js-plus@1.5.8/dist/index.iife.min.js"></script>
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 115vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    #videoContainer {
+      position: relative;
+      width: 380px;
+      height: 500px; /* Fixed height for video and image */
+      overflow: hidden; /* Hide overflow content */
+      background-color: black;
+    }
+    #videoElement, #imageElement {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%; /* Always take full width */
+      height: auto; /* Adjust height automatically */
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+    }
+    #watermark {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      color: white;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0px;
+      padding: 5px;
+      border-radius: 5px;
+    }
+    #time {
+      background: linear-gradient(to bottom, #5798ff, black);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-size: 1.5em;
+      font-weight: bold;
+      padding-left: 12.8px;
+      transform: scaleX(0.8);
+      position: relative;
+      top: -2px;
+    }
+    #times {
+      padding-left: 3px;
+      transform: scaleX(0.8);
+      margin-top: -80px;
+      font-weight: bold;
+              
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    button {
+      padding: 8px 15px;
+      background-color: #5798ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s; /* Add transition */
+    }
+    button:hover {
+      background-color: #4080e0;
+    }
+    input[type="file"] {
+      padding: 8px;
+      border: 1px solid #ccc; /* Add border */
+      border-radius: 4px; /* Add border-radius */
+      background-color: white; /* Add background */
+    }
+    input[type="text"],
+    input[type="number"],
+    select {
+      padding: 8px; /* Consistent padding */
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 10px; /* Add some space */
+      box-sizing: border-box; /* Include padding/border in width */
+    }
+    label {
+      margin-right: 5px; /* Space after label */
+      min-width: 60px; /* Minimum width for labels */
+      text-align: right; /* Align label text */
+    }
+    .watermark-controls {
+      margin: 15px 0; /* Increased margin */
+      display: flex;
+      flex-wrap: wrap; /* Allow wrapping */
+      gap: 10px; /* Space between items */
+      align-items: center; /* Vertically align items */
+      justify-content: center; /* Center items horizontally */
+      width: 90%; /* Limit width */
+      max-width: 600px; /* Max width */
+    }
+    /* Style individual control groups */
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 5px; /* Space within group */
+    }
+    .advanced-options {
+      margin-top: 20px; /* Increased margin */
+      border-top: 1px solid #ddd;
+      padding-top: 15px; /* Increased padding */
+      width: 90%; /* Limit width */
+      max-width: 600px; /* Max width */
+      display: flex; /* Use flex for centering */
+      justify-content: center; /* Center the inner controls */
+    }
+    .disclaimer {
+      margin-top: 15px;
+      font-size: 0.9em;
+      color: #666;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">DIY水印相机</h1>
-            <p class="text-gray-600 mt-2">上传图片，添加水印，下载分享</p>
-        </header>
-        
-        <div class="flex flex-col lg:flex-row gap-6">
-            <!-- Left Column: Image Preview -->
-            <div class="w-full lg:w-1/2">
-                <div class="bg-white rounded-lg shadow-lg p-4">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-700">图片预览</h2>
-                    
-                    <!-- Image Container -->
-                    <div id="videoContainer" class="relative bg-black rounded-lg overflow-hidden w-full" style="height: 500px;">
-                        <video id="videoElement" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-auto" autoplay playsinline></video>
-                        <img id="imageElement" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-auto" style="display:none;">
-                        
-                        <!-- Watermark Preview - Exact styling from reference -->
-                        <div id="watermark" class="watermark-preview">
-                            <div id="time" class="gradient-text"></div>
-                            <div id="watermarkTextb"></div>
-                            <div id="watermarkTextc"></div>
-                            <div id="fw"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Result Container -->
-                    <div id="resultContainer" class="relative bg-black rounded-lg overflow-hidden w-full hidden" style="height: 500px;">
-                        <img id="resultImage" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-auto">
-                    </div>
-                    
-                    <!-- Image Controls -->
-                    <div class="flex flex-wrap gap-2 mt-4">
-                        <button id="startCamera" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center">
-                            <i class="fas fa-camera mr-2"></i> 使用相机
-                        </button>
-                        
-                        <label class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg cursor-pointer flex items-center">
-                            <i class="fas fa-upload mr-2"></i> 上传图片
-                            <input type="file" id="uploadImage" accept="image/*" class="hidden">
-                        </label>
-                        
-                        <button id="captureImage" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center">
-                            <i class="fas fa-camera-retro mr-2"></i> 拍照
-                        </button>
-                        
-                        <button id="backToEdit" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg hidden flex items-center">
-                            <i class="fas fa-arrow-left mr-2"></i> 返回编辑
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Right Column: Watermark Controls -->
-            <div class="w-full lg:w-1/2">
-                <div class="bg-white rounded-lg shadow-lg p-4">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-700">水印设置</h2>
-                    
-                    <!-- Watermark Form -->
-                    <div class="space-y-4">
-                        <div>
-                            <label for="watermarkInputa" class="block text-sm font-medium text-gray-700 mb-1">时间</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="far fa-clock text-gray-400"></i>
-                                </div>
-                                <input type="text" id="watermarkInputa" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label for="watermarkInputb" class="block text-sm font-medium text-gray-700 mb-1">地点</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-map-marker-alt text-gray-400"></i>
-                                </div>
-                                <input type="text" id="watermarkInputb" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label for="watermarkInputc" class="block text-sm font-medium text-gray-700 mb-1">日期</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="far fa-calendar-alt text-gray-400"></i>
-                                </div>
-                                <input type="text" id="watermarkInputc" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
-                        
-                        <div class="pt-2">
-                            <button id="updateWatermark" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-sync-alt mr-2"></i> 更新预览
-                            </button>
-                        </div>
-                        
-                        <div class="pt-2">
-                            <button id="applyWatermark" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-stamp mr-2"></i> 应用水印
-                            </button>
-                        </div>
-                        
-                        <div class="pt-2">
-                            <button id="downloadImage" disabled class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                                <i class="fas fa-download mr-2"></i> 下载图片
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Additional Information Card -->
-                <div class="bg-white rounded-lg shadow-lg p-4 mt-4">
-                    <h2 class="text-xl font-semibold mb-2 text-gray-700">使用说明</h2>
-                    <ol class="list-decimal pl-5 space-y-1 text-gray-600">
-                        <li>上传图片或使用相机拍照</li>
-                        <li>自定义水印文字内容</li>
-                        <li>点击"应用水印"处理图片</li>
-                        <li>下载带水印的图片</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<body>
+  <div id="videoContainer">
+    <video id="videoElement" autoplay playsinline></video>
+    <img id="imageElement" style="display:none;">
+    <div id="watermark" style="margin-bottom: -16.3px;">
+      <img src="bj.png" style="position: initial;width: 380px;margin-bottom: -103.3px;margin-left: -15px;">
+      <div id="time"></div>
+      <div id="watermarkTextb" style="transform: scaleX(0.9);padding-top: 8px;margin-left: -10px;padding-bottom: 1px;letter-spacing: 0.1px;font-weight: bold;">烟台市牟平区嵠山后村</div>
+      <div id="dateAndWeather" style="padding-bottom: 19px;padding-left: 10px;letter-spacing: 0px;">
+        <span id="watermarkTextc"></span>
+        <span id="watermarkTextd"></span>
+      </div>
+      <div id="fw" style="transform: scaleX(0.8);letter-spacing: 0px;margin-left: 303px;font-size: 6.5px;margin-bottom: 0px;font-weight: bold;margin-top: -1.8px;">获取中</div>
     </div>
-    
-    <!-- Hidden canvas for image processing -->
-    <canvas id="canvas" class="hidden"></canvas>
-    
-    <script>
-        $(document).ready(function () {
-            const videoElement = document.getElementById('videoElement');
-            const imageElement = document.getElementById('imageElement');
-            const resultImage = document.getElementById('resultImage');
-            const resultContainer = document.getElementById('resultContainer');
-            const videoContainer = document.getElementById('videoContainer');
-            const backToEditBtn = document.getElementById('backToEdit');
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            let stream = null;
-            let currentImage = null;
-            
-            // Initialize watermark with current time and date
-            $("#fw").text(generateRandomString(14));
-            
-            var currentDate = new Date();
-            var hours = ("0" + currentDate.getHours()).slice(-2);
-            var minutes = ("0" + currentDate.getMinutes()).slice(-2);
-            var formattedTime = hours + ":" + minutes;
-            $("#time").text(formattedTime);
-            $("#watermarkInputa").val(formattedTime);
-            
-            // Use Chinese day names
-            var days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            var year = currentDate.getFullYear();
-            var month = ("0" + (currentDate.getMonth() + 1)).slice(-2);
-            var day = ("0" + currentDate.getDate()).slice(-2);
-            var dayOfWeek = days[currentDate.getDay()];
-            var formattedDate = year + "." + month + "." + day + " " + dayOfWeek;
-            $("#watermarkTextc").text(formattedDate);
-            $("#watermarkInputb").val('广东省东莞市虎门镇');
-            $("#watermarkTextb").text('广东省东莞市虎门镇');
-            $("#watermarkInputc").val(formattedDate);
-            
-            // Start camera button
-            $('#startCamera').click(function () {
-                $('#imageElement').hide();
-                $('#videoElement').show();
-                $('#resultContainer').hide();
-                $('#videoContainer').show();
-                $('#backToEdit').hide();
-                
-                if (navigator.mediaDevices.getUserMedia) {
-                    // Try to get the environment camera (rear camera on mobile)
-                    navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: { exact: "environment" } }
-                    })
-                    .then(function (mediaStream) {
-                        stream = mediaStream;
-                        videoElement.srcObject = mediaStream;
-                    })
-                    .catch(function (error) {
-                        // If environment camera fails, try any available camera
-                        navigator.mediaDevices.getUserMedia({ video: true })
-                        .then(function (mediaStream) {
-                            stream = mediaStream;
-                            videoElement.srcObject = mediaStream;
-                        })
-                        .catch(function (err) {
-                            console.log("Camera access error:", err);
-                            showNotification("无法访问相机。请检查权限设置。", "error");
-                        });
-                    });
-                }
-            });
-            
-            // Upload image button
-            $('#uploadImage').change(function (event) {
-                // Stop camera if it's running
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                }
-                
-                $('#videoElement').hide();
-                $('#imageElement').show();
-                $('#resultContainer').hide();
-                $('#videoContainer').show();
-                $('#backToEdit').hide();
-                
-                const file = event.target.files[0];
-                const reader = new FileReader();
-                
-                reader.onload = function (e) {
-                    $('#imageElement').attr('src', e.target.result);
-                    currentImage = e.target.result;
-                }
-                reader.readAsDataURL(file);
-            });
-            
-            // Update watermark preview
-            $('#updateWatermark').click(function () {
-                $("#time").text($('#watermarkInputa').val());
-                $("#watermarkTextb").text($('#watermarkInputb').val());
-                $("#watermarkTextc").text($('#watermarkInputc').val());
-                $("#fw").text(generateRandomString(14));
-                
-                showNotification("水印预览已更新", "success");
-            });
-            
-            // Capture image button
-            $('#captureImage').click(function () {
-                if ($('#videoElement').is(':visible') && stream) {
-                    // Capture from video
-                    canvas.width = videoElement.videoWidth;
-                    canvas.height = videoElement.videoHeight;
-                    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-                    
-                    // Convert to image and display
-                    const imageDataURL = canvas.toDataURL('image/png');
-                    $('#videoElement').hide();
-                    $('#imageElement').show();
-                    $('#imageElement').attr('src', imageDataURL);
-                    currentImage = imageDataURL;
-                    
-                    // Stop the camera stream
-                    stream.getTracks().forEach(track => track.stop());
-                    stream = null;
-                    
-                    showNotification("图片拍摄成功", "success");
-                } else {
-                    showNotification("请先启动相机", "error");
-                }
-            });
-            
-            // Back to edit button
-            $('#backToEdit').click(function() {
-                $('#resultContainer').hide();
-                $('#videoContainer').show();
-                $('#backToEdit').hide();
-            });
-            
-            // Apply watermark button
-            $('#applyWatermark').click(function() {
-                const applyBtn = $(this);
-                
-                if (!currentImage && !$('#imageElement').attr('src')) {
-                    showNotification("请先上传或拍摄图片", "error");
-                    return;
-                }
-                
-                if (!currentImage) {
-                    currentImage = $('#imageElement').attr('src');
-                }
-                
-                // Show loading state
-                applyBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i> 处理中...');
-                applyBtn.prop('disabled', true);
-                
-                // Get watermark text values
-                const timeText = $('#watermarkInputa').val();
-                const locationText = $('#watermarkInputb').val();
-                const dateText = $('#watermarkInputc').val();
-                const randomCode = generateRandomString(14);
-                
-                try {
-                    // Create a new image to ensure it's fully loaded
-                    const img = new Image();
-                    img.crossOrigin = "Anonymous";
-                    
-                    img.onload = function() {
-                        // Create watermark configuration
-                        const watermarkConfig = {
-                            watermarkTexts: [
-                                {
-                                    text: timeText,
-                                    font: 'bold 24px "Noto Sans SC", "Microsoft YaHei", sans-serif',
-                                    color: 'linear-gradient(to bottom, #5798ff, black)',
-                                    x: 20,
-                                    y: img.height - 100,
-                                    scaleX: 0.8
-                                },
-                                {
-                                    text: locationText,
-                                    font: 'bold 15px "Noto Sans SC", "Microsoft YaHei", sans-serif',
-                                    color: 'white',
-                                    x: 10,
-                                    y: img.height - 50,
-                                    scaleX: 0.9
-                                },
-                                {
-                                    text: dateText,
-                                    font: '15px "Noto Sans SC", "Microsoft YaHei", sans-serif',
-                                    color: 'white',
-                                    x: 30,
-                                    y: img.height - 20
-                                },
-                                {
-                                    text: randomCode,
-                                    font: 'bold 6.5px "Noto Sans SC", "Microsoft YaHei", sans-serif',
-                                    color: 'white',
-                                    x: img.width - 40,
-                                    y: img.height - 20,
-                                    scaleX: 0.8
-                                }
-                            ]
-                        };
-                        
-                        // Apply watermark using WatermarkPlus
-                        WatermarkPlus.addWatermark(img, watermarkConfig)
-                            .then(watermarkedImage => {
-                                // Display the result
-                                $('#resultImage').attr('src', watermarkedImage);
-                                $('#videoContainer').hide();
-                                $('#resultContainer').show();
-                                $('#backToEdit').show();
-                                $('#downloadImage').prop('disabled', false);
-                                
-                                // Reset button state
-                                applyBtn.html('<i class="fas fa-stamp mr-2"></i> 应用水印');
-                                applyBtn.prop('disabled', false);
-                                
-                                showNotification("水印添加成功", "success");
-                            })
-                            .catch(error => {
-                                console.error('Error in watermarking process:', error);
-                                
-                                // Reset button state
-                                applyBtn.html('<i class="fas fa-stamp mr-2"></i> 应用水印');
-                                applyBtn.prop('disabled', false);
-                                
-                                showNotification("添加水印失败: " + error.message, "error");
-                            });
-                    };
-                    
-                    img.onerror = function() {
-                        console.error('Error loading image');
-                        applyBtn.html('<i class="fas fa-stamp mr-2"></i> 应用水印');
-                        applyBtn.prop('disabled', false);
-                        showNotification("图片加载失败，请重试。", "error");
-                    };
-                    
-                    // Set the source to trigger loading
-                    img.src = currentImage;
-                    
-                } catch (error) {
-                    console.error('Error in watermarking process:', error);
-                    
-                    // Reset button state
-                    applyBtn.html('<i class="fas fa-stamp mr-2"></i> 应用水印');
-                    applyBtn.prop('disabled', false);
-                    
-                    showNotification("添加水印失败: " + error.message, "error");
-                }
-            });
-            
-            // Download image button
-            $('#downloadImage').click(function () {
-                if ($('#resultImage').attr('src')) {
-                    const link = document.createElement('a');
-                    link.download = '水印图片-' + new Date().getTime() + '.png';
-                    link.href = $('#resultImage').attr('src');
-                    link.click();
-                    
-                    showNotification("图片下载成功", "success");
-                } else {
-                    showNotification("请先应用水印", "error");
-                }
-            });
-            
-            // Function to show notifications
-            function showNotification(message, type) {
-                // Create notification element
-                const notification = document.createElement('div');
-                notification.className = 'fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500 ease-in-out z-50';
-                
-                // Set style based on type
-                if (type === 'success') {
-                    notification.className += ' bg-green-500 text-white';
-                    notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${message}`;
-                } else if (type === 'error') {
-                    notification.className += ' bg-red-500 text-white';
-                    notification.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> ${message}`;
-                } else {
-                    notification.className += ' bg-blue-500 text-white';
-                    notification.innerHTML = `<i class="fas fa-info-circle mr-2"></i> ${message}`;
-                }
-                
-                // Add to DOM
-                document.body.appendChild(notification);
-                
-                // Animate in
-                setTimeout(() => {
-                    notification.classList.add('translate-y-0');
-                    notification.classList.remove('translate-y-full');
-                }, 10);
-                
-                // Remove after delay
-                setTimeout(() => {
-                    notification.classList.add('opacity-0');
-                    setTimeout(() => {
-                        document.body.removeChild(notification);
-                    }, 500);
-                }, 3000);
-            }
-        });
-        
-        function generateRandomString(length) {
-            const characters = 'ABCDEFGHIJKMNOPQRSTUVWXYZ0123456789';
-            let result = '';
-            const charactersLength = characters.length;
-            for (let i = 0; i < length; i++) {
-                result += characters.charAt(Math.floor(Math.random() * charactersLength));
-            }
-            return result;
+  </div>
+
+  <div class="button-group">
+    <!-- <button id="startCamera">使用相机</button> -->
+    <input type="file" id="uploadImage" accept="image/*">
+    <!-- <button id="captureButton">拍照</button>
+    <button id="downloadButton">下载</button> -->
+  </div>
+
+  <div class="watermark-controls">
+    <div class="control-group">
+      <label for="watermarkInputa">时间:</label>
+      <input type="text" id="watermarkInputa" placeholder="时间">
+    </div>
+    <div class="control-group">
+      <label for="watermarkInputb">地点:</label>
+      <input type="text" id="watermarkInputb" placeholder="地点">
+    </div>
+    <div class="control-group">
+      <label for="watermarkInputc">日期:</label>
+      <input type="text" id="watermarkInputc" placeholder="日期">
+    </div>
+    <div class="control-group">
+        <label for="watermarkInputd">天气:</label>
+      <input type="text" id="watermarkInputd" placeholder="天气">
+    </div>
+  </div>
+<button id="updateWatermark">更新水印</button>
+
+<br>
+<hr>
+
+  <div class="advanced-options">
+    <div class="watermark-controls" style="margin: 0; border: none; padding: 0;"> <!-- Nested controls, reset some styles -->
+      <div class="control-group">
+        <label for="watermarkStyle">样式:</label>
+        <select id="watermarkStyle">
+          <option value="default">默认</option>
+          <option value="gradient">渐变</option>
+          <option value="shadow">阴影</option>
+          <option value="blur">模糊</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="watermarkRotate">旋转:</label>
+        <input type="number" id="watermarkRotate" value="0" min="-180" max="180" style="width: 70px;">
+      </div>
+      <div class="control-group">
+        <label for="watermarkOpacity">透明:</label>
+        <input type="range" id="watermarkOpacity" min="0.1" max="1" step="0.1" value="0.5">
+        <span id="opacityValue">0.5</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    提示：右键点击图片区域可快速下载带水印的图片。
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      const videoElement = document.getElementById('videoElement');
+      const imageElement = document.getElementById('imageElement');
+      const watermarka = document.getElementById('time');
+      const watermarkb = document.getElementById('watermarkTextb');
+      const watermarkc = document.getElementById('watermarkTextc');
+      const watermarkd = document.getElementById('watermarkTextd');
+      const captureButton = document.getElementById('captureButton');
+      const downloadButton = document.getElementById('downloadButton');
+      const watermarkStyleSelect = document.getElementById('watermarkStyle');
+      const watermarkRotate = document.getElementById('watermarkRotate');
+      const watermarkOpacity = document.getElementById('watermarkOpacity');
+      const opacityValue = document.getElementById('opacityValue');
+      let watermarkInstance = null;
+      let mediaStream = null;
+      let capturedImage = null;
+
+      // Initialize random code
+      $("#fw").text(generateRandomString(16));
+
+      // Initialize time
+      updateCurrentTime();
+      
+      // Update time every minute
+      setInterval(updateCurrentTime, 60000);
+
+ 
+      // Initialize default location
+      $("#watermarkInputb").val('烟台市牟平区嵠山后村');
+      // Initialize default weather
+      $("#watermarkInputd").val('晴 14°C');
+
+           // Initialize date
+        updateCurrentDate();
+        updateWeather();
+
+      function updateCurrentTime() {
+        var currentDate = new Date();
+        var hours = ("0" + currentDate.getHours()).slice(-2);
+        var minutes = ("0" + currentDate.getMinutes()).slice(-2);
+        var formattedTime = hours + ":" + minutes;
+        $("#time").text(formattedTime);
+        $("#watermarkInputa").val(formattedTime);
+      }
+
+      function updateCurrentDate() {
+        var days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        var currentDate = new Date();
+        var year = currentDate.getFullYear();
+        var month = ("0" + (currentDate.getMonth() + 1)).slice(-2);
+        var day = ("0" + currentDate.getDate()).slice(-2);
+        var dayOfWeek = days[currentDate.getDay()];
+        var formattedDate = year + "." + month + "." + day + " " + dayOfWeek;
+        $("#watermarkTextc").text(formattedDate);
+        $("#watermarkInputc").val(formattedDate);
+      }
+
+      function updateWeather() {
+        // Get the weather value from the INPUT field
+        const weatherValue = $("#watermarkInputd").val();
+        // if weatherValue is empty, set it to "晴 14°C"
+        // Set the text of the SPAN element to display the weather
+        $("#watermarkTextd").text(weatherValue);
+        // No need to set the input value again here, it already has the value.
+      }
+
+      // Start camera
+      $('#startCamera').click(function () {
+        $('#imageElement').hide();
+        $('#videoElement').show();
+        if (navigator.mediaDevices.getUserMedia) {
+          if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+          }
+          navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: { exact: "environment" } } 
+          })
+          .then(function (stream) {
+            mediaStream = stream;
+            videoElement.srcObject = stream;
+          })
+          .catch(function (error) {
+            console.log("Camera error, trying default camera", error);
+            navigator.mediaDevices.getUserMedia({ video: true })
+              .then(function (stream) {
+                mediaStream = stream;
+                videoElement.srcObject = stream;
+              })
+              .catch(function (secondError) {
+                console.log("Failed to access any camera", secondError);
+              });
+          });
         }
-    </script>
+      });
+
+      // Upload image
+      $('#uploadImage').change(function (event) {
+        $('#videoElement').hide();
+        $('#imageElement').show();
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          $('#imageElement').attr('src', e.target.result);
+          capturedImage = e.target.result;
+        }
+        reader.readAsDataURL(file);
+      });
+
+      // Update watermark text
+      $('#updateWatermark').click(function () {
+        watermarka.textContent = $('#watermarkInputa').val();
+        watermarkb.textContent = $('#watermarkInputb').val();
+        watermarkc.textContent = $('#watermarkInputc').val();
+        watermarkd.textContent = $('#watermarkInputd').val();
+        $("#fw").text(generateRandomString(16));
+        applyWatermark();
+      });
+
+      // Capture image
+      captureButton.addEventListener('click', function() {
+        if (videoElement.style.display !== 'none') {
+          const canvas = document.createElement('canvas');
+          canvas.width = videoElement.videoWidth;
+          canvas.height = videoElement.videoHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+          capturedImage = canvas.toDataURL('image/png');
+          
+          $('#videoElement').hide();
+          $('#imageElement').show();
+          $('#imageElement').attr('src', capturedImage);
+          
+          // Apply watermark to captured image
+          applyWatermark();
+        }
+      });
+
+      // Download image with watermark - improved with ImageWatermark
+      downloadButton.addEventListener('click', function() {
+        if (!capturedImage) {
+          if (videoElement.style.display !== 'none') {
+            // Capture current video frame
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            capturedImage = canvas.toDataURL('image/png');
+          } else if (imageElement.style.display !== 'none') {
+            capturedImage = imageElement.src;
+          } else {
+            alert('请先拍照或上传图片');
+            return;
+          }
+        }
+        
+        // Convert the bj.png to a data URL to avoid CORS issues
+        const bgImg = new Image();
+        bgImg.crossOrigin = "Anonymous"; // Try to avoid CORS issues
+        
+        // First convert bj.png to data URL (to avoid CORS issues)
+        convertImageToDataURL('bj.png', function(dataUrl) {
+          // Create the final canvas for combining everything
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw the base image
+            ctx.drawImage(img, 0, 0);
+            
+            // Draw the background image (from data URL)
+            const bgOverlay = new Image();
+            bgOverlay.onload = function() {
+              // Position at the bottom
+              const bgWidth = 380;
+              const bgHeight = bgOverlay.height * (bgWidth / bgOverlay.width);
+              ctx.drawImage(bgOverlay, 0, canvas.height - bgHeight, bgWidth, bgHeight);
+              
+              // Add watermark text
+              const timeText = $('#watermarkInputa').val();
+              const locationText = $('#watermarkInputb').val();
+              const dateText = $('#watermarkInputc').val();
+              const randomCode = $('#fw').text();
+              
+              // Time with gradient
+              const timeX = 20;
+              const timeY = canvas.height - 70;
+              
+              // Create gradient for time text
+              const timeGradient = ctx.createLinearGradient(timeX, timeY - 40, timeX, timeY);
+              timeGradient.addColorStop(0, "#5798ff");
+              timeGradient.addColorStop(1, "white");
+              
+              ctx.font = "bold 40px 'Microsoft YaHei'";
+              ctx.fillStyle = timeGradient;
+              ctx.fillText(timeText, timeX, timeY);
+              
+              // Location
+              ctx.font = "bold 20px 'Microsoft YaHei'";
+              ctx.fillStyle = "white";
+              ctx.fillText(locationText, 20, canvas.height - 40);
+              
+              // Date
+              ctx.font = "20px 'Microsoft YaHei'";
+              ctx.fillText(dateText, 20, canvas.height - 20);
+              
+              // Random code (in bottom right)
+              ctx.font = "bold 10px 'Microsoft YaHei'";
+              ctx.fillText(randomCode, canvas.width - 120, canvas.height - 10);
+              
+              // Download the watermarked image
+              const link = document.createElement('a');
+              link.download = 'watermarked_image_' + new Date().getTime() + '.png';
+              link.href = canvas.toDataURL('image/png');
+              link.click();
+            };
+            
+            bgOverlay.src = dataUrl;
+          };
+          
+          img.src = capturedImage;
+        });
+      });
+      
+      // Function to convert an image to data URL to avoid CORS
+      function convertImageToDataURL(url, callback) {
+        const img = document.createElement('img');
+        img.crossOrigin = 'Anonymous';
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const dataURL = canvas.toDataURL('image/png');
+          callback(dataURL);
+        };
+        
+        img.onerror = function() {
+          // If loading fails (CORS issue), use a fallback
+          console.error("Could not load image: " + url);
+          // Create a fallback gradient background
+          const canvas = document.createElement('canvas');
+          canvas.width = 380;
+          canvas.height = 150;
+          const ctx = canvas.getContext('2d');
+          
+          // Create gradient background
+          const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+          gradient.addColorStop(1, "rgba(0, 0, 0, 0.8)");
+          
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          callback(canvas.toDataURL('image/png'));
+        };
+        
+        // Try to load the image with CORS
+        img.src = url;
+      }
+
+      // Function to add a background to the image
+      function addBackgroundToImage(imageElement, backgroundImage) {
+        return new Promise((resolve) => {
+          // Create ImageWatermark with bj.png as the watermark
+          const imgWatermark = new WatermarkPlus.ImageWatermark({
+            dom: imageElement,
+            width: imageElement.width,
+            height: imageElement.height,
+            contentType: 'image',
+            image: backgroundImage,
+            imageWidth: 380,
+            rotate: 0,
+            translatePlacement: 'bottom-start',
+            globalAlpha: 0.9
+          });
+          
+          imgWatermark.create().then(() => {
+            resolve();
+          });
+        });
+      }
+
+      // Apply watermark using watermark-js-plus
+      function applyWatermark() {
+        if (watermarkInstance) {
+          watermarkInstance.destroy();
+        }
+
+        // Combine watermark text from inputs
+        const timeText = $('#watermarkInputa').val();
+        const locationText = $('#watermarkInputb').val();
+        const dateText = $('#watermarkInputc').val();
+        const weatherText = $('#watermarkInputd').val();
+        const combinedText = `${timeText}\n${locationText}\n${dateText}\n${weatherText}`; // Use template literal
+
+        const rotation = parseInt(watermarkRotate.value) || 0;
+        const opacity = parseFloat(watermarkOpacity.value);
+
+        // Options based on style selection
+        let watermarkOptions = {
+          parent: '#videoContainer',
+          content: combinedText, // Use combined text
+          contentType: 'multi-line-text', // Use multi-line text type
+          width: 300,
+          height: 100,
+          rotate: rotation,
+          fontColor: `rgba(255, 255, 255, ${opacity})`,
+          fontSize: '18px',
+          fontWeight: 'bold',
+          fontFamily: "'Microsoft YaHei', Arial, sans-serif",
+          textAlign: 'left',
+          textBaseline: 'bottom',
+          lineHeight: '1.5em' // Adjust line height for multi-line
+        };
+
+        // Apply different styles based on selection
+        switch(watermarkStyleSelect.value) {
+          case 'gradient':
+            watermarkOptions.advancedStyle = {
+              type: 'linear',
+              colorStops: [
+                { offset: 0, color: `rgba(87, 152, 255, ${opacity})` },
+                { offset: 1, color: `rgba(0, 0, 0, ${opacity})` }
+              ]
+            };
+            break;
+          case 'shadow':
+            watermarkOptions.shadowStyle = {
+              shadowBlur: 5,
+              shadowColor: `rgba(0, 0, 0, ${opacity})`,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            };
+            break;
+          case 'blur':
+            watermarkOptions.filter = `blur(1px) opacity(${opacity})`;
+            break;
+          default:
+            // Default style uses the base settings
+            break;
+        }
+
+        // Changed from watermarkJsPlus to WatermarkPlus
+        watermarkInstance = new WatermarkPlus.Watermark(watermarkOptions);
+        watermarkInstance.create();
+      }
+
+      // Update opacity display value
+      watermarkOpacity.addEventListener('input', function() {
+        opacityValue.textContent = this.value;
+      });
+
+      // Generate random string for watermark ID
+      function generateRandomString(length) {
+        const characters = 'ABCDEFGHIJKMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+      }
+
+      // Enable right-click download
+      document.getElementById('videoContainer').addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        if (capturedImage || $('#imageElement').is(':visible')) {
+          downloadButton.click();
+        } else {
+          captureButton.click();
+          setTimeout(() => {
+            downloadButton.click();
+          }, 100);
+        }
+        return false;
+      });
+    });
+  </script>
 </body>
 </html>
