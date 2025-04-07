@@ -1,51 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=no,minimal-ui"
     />
-    <title>DIY Watermark Camera</title>
+    <title>DIY水印相机</title>
+    
+    <!-- Import jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Import Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Import Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Import Noto Sans SC for better Chinese font support -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Import WatermarkPlus -->
+    <script src="assets/js/watermark-plus/watermark-plus.min.js"></script>
+    
     <style>
         body {
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 115vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', Arial, sans-serif;
         }
-        #videoContainer {
-            position: relative;
-            width: 380px;
-            height: 500px; /* Fixed height for video and image */
-            overflow: hidden; /* Hide overflow content */
-            background-color: black;
-        }
-        #videoElement, #imageElement {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%; /* Always take full width */
-            height: auto; /* Adjust height automatically */
-            transform: translate(-50%, -50%);
-        }
-        #watermark {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            color: white;
-            font-size: 15px;
-            font-weight: 500;
-            letter-spacing: 0px;
-            padding: 5px;
-            border-radius: 5px;
-        }
-        #time {
+        
+        /* Custom styles for watermark */
+        .gradient-text {
             background: linear-gradient(to bottom, #5798ff, black);
             -webkit-background-clip: text;
             background-clip: text;
@@ -55,96 +39,187 @@
             padding-left: 12.8px;
             transform: scaleX(0.8);
         }
-        #times {
-            padding-left: 3px;
-            transform: scaleX(0.8);
-            margin-top: -80px;
+        
+        .watermark-preview {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0px;
+            padding: 5px;
+            border-radius: 5px;
+            margin-bottom: -16.3px;
+        }
+        
+        #watermarkTextb {
+            transform: scaleX(0.9);
+            padding-top: 8px;
+            margin-left: -10px;
+            padding-bottom: 1px;
+            letter-spacing: 0.1px;
             font-weight: bold;
         }
-        button {
-            padding: 10px;
-            margin: 5px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        
+        #watermarkTextc {
+            padding-bottom: 19px;
+            padding-left: 10px;
+            letter-spacing: 0px;
         }
-        button:hover {
-            background-color: #45a049;
-        }
-        input[type="text"] {
-            padding: 8px;
-            margin: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        input[type="file"] {
-            margin: 10px 0;
-        }
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-        .watermark-bg {
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
+        
+        #fw {
+            transform: scaleX(0.8);
+            letter-spacing: 0px;
+            margin-left: 303px;
+            font-size: 6.5px;
+            margin-bottom: 0px;
+            font-weight: bold;
+            margin-top: -1.8px;
         }
     </style>
 </head>
-<body>
-    <div id="videoContainer">
-        <video id="videoElement" autoplay playsinline></video>
-        <img id="imageElement" style="display:none;">
-        <div id="watermark" style="margin-bottom: -16.3px;">
-            <div class="watermark-bg">
-                <div id="time"></div>
-                <div id="watermarkTextb" style="transform: scaleX(0.9);padding-top: 8px;margin-left: -10px;padding-bottom: 1px;letter-spacing: 0.1px;font-weight: bold;">广东省东莞市虎门镇</div>
-                <div id="watermarkTextc" style="padding-bottom: 19px;padding-left: 10px;letter-spacing: 0px;">获取中</div>
-                <div id="fw" style="transform: scaleX(0.8);letter-spacing: 0px;margin-left: 303px;font-size: 6.5px;margin-bottom: 0px;font-weight: bold;margin-top: -1.8px;">获取中</div>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">DIY水印相机</h1>
+            <p class="text-gray-600 mt-2">上传图片，添加水印，下载分享</p>
+        </header>
+        
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Left Column: Image Preview -->
+            <div class="w-full lg:w-1/2">
+                <div class="bg-white rounded-lg shadow-lg p-4">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">图片预览</h2>
+                    
+                    <!-- Image Container -->
+                    <div id="videoContainer" class="relative bg-black rounded-lg overflow-hidden w-full" style="height: 500px;">
+                        <video id="videoElement" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-auto" autoplay playsinline></video>
+                        <img id="imageElement" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-auto" style="display:none;">
+                        
+                        <!-- Watermark Preview - Exact styling from reference -->
+                        <div id="watermark" class="watermark-preview">
+                            <div id="time" class="gradient-text"></div>
+                            <div id="watermarkTextb"></div>
+                            <div id="watermarkTextc"></div>
+                            <div id="fw"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Result Container -->
+                    <div id="resultContainer" class="relative bg-black rounded-lg overflow-hidden w-full hidden" style="height: 500px;">
+                        <img id="resultImage" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-auto">
+                    </div>
+                    
+                    <!-- Image Controls -->
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <button id="startCamera" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center">
+                            <i class="fas fa-camera mr-2"></i> 使用相机
+                        </button>
+                        
+                        <label class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg cursor-pointer flex items-center">
+                            <i class="fas fa-upload mr-2"></i> 上传图片
+                            <input type="file" id="uploadImage" accept="image/*" class="hidden">
+                        </label>
+                        
+                        <button id="captureImage" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center">
+                            <i class="fas fa-camera-retro mr-2"></i> 拍照
+                        </button>
+                        
+                        <button id="backToEdit" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg hidden flex items-center">
+                            <i class="fas fa-arrow-left mr-2"></i> 返回编辑
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: Watermark Controls -->
+            <div class="w-full lg:w-1/2">
+                <div class="bg-white rounded-lg shadow-lg p-4">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">水印设置</h2>
+                    
+                    <!-- Watermark Form -->
+                    <div class="space-y-4">
+                        <div>
+                            <label for="watermarkInputa" class="block text-sm font-medium text-gray-700 mb-1">时间</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="far fa-clock text-gray-400"></i>
+                                </div>
+                                <input type="text" id="watermarkInputa" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="watermarkInputb" class="block text-sm font-medium text-gray-700 mb-1">地点</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-map-marker-alt text-gray-400"></i>
+                                </div>
+                                <input type="text" id="watermarkInputb" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="watermarkInputc" class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="far fa-calendar-alt text-gray-400"></i>
+                                </div>
+                                <input type="text" id="watermarkInputc" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button id="updateWatermark" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-sync-alt mr-2"></i> 更新预览
+                            </button>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button id="applyWatermark" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-stamp mr-2"></i> 应用水印
+                            </button>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button id="downloadImage" disabled class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-download mr-2"></i> 下载图片
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Information Card -->
+                <div class="bg-white rounded-lg shadow-lg p-4 mt-4">
+                    <h2 class="text-xl font-semibold mb-2 text-gray-700">使用说明</h2>
+                    <ol class="list-decimal pl-5 space-y-1 text-gray-600">
+                        <li>上传图片或使用相机拍照</li>
+                        <li>自定义水印文字内容</li>
+                        <li>点击"应用水印"处理图片</li>
+                        <li>下载带水印的图片</li>
+                    </ol>
+                </div>
             </div>
         </div>
     </div>
     
-    <div class="controls">
-        <button id="startCamera">Use Camera</button>
-        <input type="file" id="uploadImage" accept="image/*">
-        <button id="captureImage">Capture Image</button>
-        <button id="downloadImage">Download Image</button>
-    </div>
-    
-    <div class="controls">
-        <label for="watermarkInputa">Time:</label>
-        <input type="text" id="watermarkInputa" placeholder="Time">
-        
-        <label for="watermarkInputb">Location:</label>
-        <input type="text" id="watermarkInputb" placeholder="Location">
-        
-        <label for="watermarkInputc">Date:</label>
-        <input type="text" id="watermarkInputc" placeholder="Date">
-        
-        <button id="updateWatermark">Update Watermark</button>
-    </div>
-    
-    <br>
-    <p>This project is for learning purposes only. Do not use illegally.</p>
-    
-    <canvas id="canvas" style="display: none;"></canvas>
+    <!-- Hidden canvas for image processing -->
+    <canvas id="canvas" class="hidden"></canvas>
     
     <script>
         $(document).ready(function () {
             const videoElement = document.getElementById('videoElement');
             const imageElement = document.getElementById('imageElement');
-            const watermarka = document.getElementById('time');
-            const watermarkb = document.getElementById('watermarkTextb');
-            const watermarkc = document.getElementById('watermarkTextc');
+            const resultImage = document.getElementById('resultImage');
+            const resultContainer = document.getElementById('resultContainer');
+            const videoContainer = document.getElementById('videoContainer');
+            const backToEditBtn = document.getElementById('backToEdit');
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             let stream = null;
+            let currentImage = null;
             
             // Initialize watermark with current time and date
             $("#fw").text(generateRandomString(14));
@@ -156,25 +231,30 @@
             $("#time").text(formattedTime);
             $("#watermarkInputa").val(formattedTime);
             
-            var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            // Use Chinese day names
+            var days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
             var year = currentDate.getFullYear();
             var month = ("0" + (currentDate.getMonth() + 1)).slice(-2);
             var day = ("0" + currentDate.getDate()).slice(-2);
             var dayOfWeek = days[currentDate.getDay()];
             var formattedDate = year + "." + month + "." + day + " " + dayOfWeek;
             $("#watermarkTextc").text(formattedDate);
-            $("#watermarkInputb").val('Guangdong Province, Dongguan City');
+            $("#watermarkInputb").val('广东省东莞市虎门镇');
+            $("#watermarkTextb").text('广东省东莞市虎门镇');
             $("#watermarkInputc").val(formattedDate);
             
             // Start camera button
             $('#startCamera').click(function () {
                 $('#imageElement').hide();
                 $('#videoElement').show();
+                $('#resultContainer').hide();
+                $('#videoContainer').show();
+                $('#backToEdit').hide();
                 
                 if (navigator.mediaDevices.getUserMedia) {
                     // Try to get the environment camera (rear camera on mobile)
                     navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: "environment" }
+                        video: { facingMode: { exact: "environment" } }
                     })
                     .then(function (mediaStream) {
                         stream = mediaStream;
@@ -189,7 +269,7 @@
                         })
                         .catch(function (err) {
                             console.log("Camera access error:", err);
-                            alert("Could not access camera. Please check permissions.");
+                            showNotification("无法访问相机。请检查权限设置。", "error");
                         });
                     });
                 }
@@ -204,22 +284,28 @@
                 
                 $('#videoElement').hide();
                 $('#imageElement').show();
+                $('#resultContainer').hide();
+                $('#videoContainer').show();
+                $('#backToEdit').hide();
                 
                 const file = event.target.files[0];
                 const reader = new FileReader();
                 
                 reader.onload = function (e) {
                     $('#imageElement').attr('src', e.target.result);
+                    currentImage = e.target.result;
                 }
                 reader.readAsDataURL(file);
             });
             
-            // Update watermark button
+            // Update watermark preview
             $('#updateWatermark').click(function () {
-                watermarka.textContent = $('#watermarkInputa').val();
-                watermarkb.textContent = $('#watermarkInputb').val();
-                watermarkc.textContent = $('#watermarkInputc').val();
+                $("#time").text($('#watermarkInputa').val());
+                $("#watermarkTextb").text($('#watermarkInputb').val());
+                $("#watermarkTextc").text($('#watermarkInputc').val());
                 $("#fw").text(generateRandomString(14));
+                
+                showNotification("水印预览已更新", "success");
             });
             
             // Capture image button
@@ -235,65 +321,195 @@
                     $('#videoElement').hide();
                     $('#imageElement').show();
                     $('#imageElement').attr('src', imageDataURL);
+                    currentImage = imageDataURL;
                     
                     // Stop the camera stream
                     stream.getTracks().forEach(track => track.stop());
                     stream = null;
+                    
+                    showNotification("图片拍摄成功", "success");
                 } else {
-                    alert("Please start the camera first.");
+                    showNotification("请先启动相机", "error");
+                }
+            });
+            
+            // Back to edit button
+            $('#backToEdit').click(function() {
+                $('#resultContainer').hide();
+                $('#videoContainer').show();
+                $('#backToEdit').hide();
+            });
+            
+            // Apply watermark button
+            $('#applyWatermark').click(function() {
+                const applyBtn = $(this);
+                
+                if (!currentImage && !$('#imageElement').attr('src')) {
+                    showNotification("请先上传或拍摄图片", "error");
+                    return;
+                }
+                
+                if (!currentImage) {
+                    currentImage = $('#imageElement').attr('src');
+                }
+                
+                // Show loading state
+                applyBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i> 处理中...');
+                applyBtn.prop('disabled', true);
+                
+                // Get watermark text values
+                const timeText = $('#watermarkInputa').val();
+                const locationText = $('#watermarkInputb').val();
+                const dateText = $('#watermarkInputc').val();
+                const randomCode = generateRandomString(14);
+                
+                try {
+                    // Create a new image to ensure it's fully loaded
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous";
+                    
+                    img.onload = function() {
+                        // Create watermark configuration
+                        const watermarkConfig = {
+                            watermarkTexts: [
+                                {
+                                    text: timeText,
+                                    font: 'bold 24px "Noto Sans SC", "Microsoft YaHei", sans-serif',
+                                    color: 'linear-gradient(to bottom, #5798ff, black)',
+                                    x: 20,
+                                    y: 'bottom-100',
+                                    scaleX: 0.8
+                                },
+                                {
+                                    text: locationText,
+                                    font: 'bold 15px "Noto Sans SC", "Microsoft YaHei", sans-serif',
+                                    color: 'white',
+                                    x: 10,
+                                    y: 'bottom-50',
+                                    scaleX: 0.9
+                                },
+                                {
+                                    text: dateText,
+                                    font: '15px "Noto Sans SC", "Microsoft YaHei", sans-serif',
+                                    color: 'white',
+                                    x: 30,
+                                    y: 'bottom-20'
+                                },
+                                {
+                                    text: randomCode,
+                                    font: 'bold 6.5px "Noto Sans SC", "Microsoft YaHei", sans-serif',
+                                    color: 'white',
+                                    x: 'right-40',
+                                    y: 'bottom-20',
+                                    scaleX: 0.8
+                                }
+                            ],
+                            background: 'rgba(0, 0, 0, 0.5)',
+                            backgroundPosition: {
+                                x: 10,
+                                y: 'bottom-120',
+                                width: '100%-20',
+                                height: 110
+                            }
+                        };
+                        
+                        // Apply watermark using WatermarkPlus
+                        WatermarkPlus.addWatermark(img, watermarkConfig)
+                            .then(watermarkedImage => {
+                                // Display the result
+                                $('#resultImage').attr('src', watermarkedImage);
+                                $('#videoContainer').hide();
+                                $('#resultContainer').show();
+                                $('#backToEdit').show();
+                                $('#downloadImage').prop('disabled', false);
+                                
+                                // Reset button state
+                                applyBtn.html('<i class="fas fa-stamp mr-2"></i> 应用水印');
+                                applyBtn.prop('disabled', false);
+                                
+                                showNotification("水印添加成功", "success");
+                            })
+                            .catch(error => {
+                                console.error('Error in watermarking process:', error);
+                                
+                                // Reset button state
+                                applyBtn.html('<i class="fas fa-stamp mr-2"></i> 应用水印');
+                                applyBtn.prop('disabled', false);
+                                
+                                showNotification("添加水印失败: " + error.message, "error");
+                            });
+                    };
+                    
+                    img.onerror = function() {
+                        console.error('Error loading image');
+                        applyBtn.html('<i class="fas fa-stamp mr-2"></i> 应用水印');
+                        applyBtn.prop('disabled', false);
+                        showNotification("图片加载失败，请重试。", "error");
+                    };
+                    
+                    // Set the source to trigger loading
+                    img.src = currentImage;
+                    
+                } catch (error) {
+                    console.error('Error in watermarking process:', error);
+                    
+                    // Reset button state
+                    applyBtn.html('<i class="fas fa-stamp mr-2"></i> 应用水印');
+                    applyBtn.prop('disabled', false);
+                    
+                    showNotification("添加水印失败: " + error.message, "error");
                 }
             });
             
             // Download image button
             $('#downloadImage').click(function () {
-                // Create a canvas that includes both the image and watermark
-                const container = document.getElementById('videoContainer');
-                const watermark = document.getElementById('watermark');
-                
-                // Set canvas dimensions to match the container
-                canvas.width = container.offsetWidth;
-                canvas.height = container.offsetHeight;
-                
-                // Draw the background (either video or image)
-                if ($('#imageElement').is(':visible')) {
-                    // Draw the image maintaining aspect ratio
-                    const img = document.getElementById('imageElement');
+                if ($('#resultImage').attr('src')) {
+                    const link = document.createElement('a');
+                    link.download = '水印图片-' + new Date().getTime() + '.png';
+                    link.href = $('#resultImage').attr('src');
+                    link.click();
                     
-                    // Calculate dimensions to maintain aspect ratio
-                    let width = canvas.width;
-                    let height = img.naturalHeight * (width / img.naturalWidth);
-                    
-                    // If height is too large, scale based on height instead
-                    if (height > canvas.height) {
-                        height = canvas.height;
-                        width = img.naturalWidth * (height / img.naturalHeight);
-                    }
-                    
-                    // Calculate position to center the image
-                    const x = (canvas.width - width) / 2;
-                    const y = (canvas.height - height) / 2;
-                    
-                    // Draw the image
-                    ctx.fillStyle = 'black';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, x, y, width, height);
+                    showNotification("图片下载成功", "success");
                 } else {
-                    alert("Please upload or capture an image first.");
-                    return;
+                    showNotification("请先应用水印", "error");
+                }
+            });
+            
+            // Function to show notifications
+            function showNotification(message, type) {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500 ease-in-out z-50';
+                
+                // Set style based on type
+                if (type === 'success') {
+                    notification.className += ' bg-green-500 text-white';
+                    notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${message}`;
+                } else if (type === 'error') {
+                    notification.className += ' bg-red-500 text-white';
+                    notification.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> ${message}`;
+                } else {
+                    notification.className += ' bg-blue-500 text-white';
+                    notification.innerHTML = `<i class="fas fa-info-circle mr-2"></i> ${message}`;
                 }
                 
-                // Use html2canvas to capture the watermark (including styling)
-                html2canvas(watermark).then(watermarkCanvas => {
-                    // Draw the watermark canvas onto our main canvas
-                    ctx.drawImage(watermarkCanvas, 0, canvas.height - watermarkCanvas.height);
-                    
-                    // Create download link
-                    const link = document.createElement('a');
-                    link.download = 'watermarked-image.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                });
-            });
+                // Add to DOM
+                document.body.appendChild(notification);
+                
+                // Animate in
+                setTimeout(() => {
+                    notification.classList.add('translate-y-0');
+                    notification.classList.remove('translate-y-full');
+                }, 10);
+                
+                // Remove after delay
+                setTimeout(() => {
+                    notification.classList.add('opacity-0');
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 500);
+                }, 3000);
+            }
         });
         
         function generateRandomString(length) {
@@ -306,8 +522,5 @@
             return result;
         }
     </script>
-    
-    <!-- Include html2canvas for capturing DOM elements as images -->
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
